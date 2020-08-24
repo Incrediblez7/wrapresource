@@ -19,16 +19,16 @@ namespace eosio {
 			name	issuer;
 			uint64_t primary_key()const { return supply.symbol.code().raw(); }
 	  	};
-      	struct [[eosio::table]] ramusage {
-			name owner;
-			asset	net_weight;
-			asset cpu_weight;
-      		uint64_t ram_bytes;
+      		struct [[eosio::table]] ramusage {
+			name 	owner;
+			asset 	net_weight;
+			asset 	cpu_weight;
+      			uint64_t ram_bytes;
 			uint64_t primary_key()const { return owner.value; }
 	  	};
 	  	typedef eosio::multi_index< "accounts"_n, account > accounts;
 	  	typedef eosio::multi_index< "stat"_n, currency_stats > stats;
-      typedef eosio::multi_index< "userres"_n, ramusage > rams;
+      		typedef eosio::multi_index< "userres"_n, ramusage > rams;
 		public:
 		using contract::contract;
 	  	static asset get_supply(const name& token_contract_account, const symbol_code& sym_code)
@@ -66,8 +66,8 @@ namespace eosio {
 				});
 			}
 		}
-	  [[eosio::action]]
-  	void create(const name& issuer, const asset& maximum_supply)
+	  	[[eosio::action]]
+  		void create(const name& issuer, const asset& maximum_supply)
 		{
 			require_auth(_self);
 
@@ -191,80 +191,81 @@ namespace eosio {
 			check(it->balance.amount == 0, "Cannot close because the balance is not zero.");
 			acnts.erase(it);
 		}
-    [[eosio::on_notify("eosio.token::transfer")]]
-    void buy(name from, name to, asset quantity, std::string memo) {
-      if(from==_self || to!=_self || from=="eosio.ram"_n) return;
-      rams ram("eosio"_n, _self.value);
-      auto it = ram.find(_self.value);
-      action{
-			permission_level{_self, "active"_n},
-			"eosio"_n,
-			"buyram"_n,
-			std::make_tuple(_self,_self,quantity)
-	  }.send();
-	  action{
-			permission_level{_self, "active"_n},
-			_self,
-			"send"_n,
-			std::make_tuple(from,it->ram_bytes)
-	  }.send();
-    }
-	[[eosio::action]]
-	void send(name from, uint64_t before) {
-		require_auth(_self);
-		rams ram("eosio"_n, _self.value);
-      	auto it = ram.find(_self.value);
-		uint64_t now = it->ram_bytes;
-		asset amount = asset(now-before, symbol("WRAM",4));
-		action{
-			permission_level{_self, "active"_n},
-			_self,
-			"issue"_n,
-			std::make_tuple(_self,amount,std::string("issue"))
-	  	}.send();
-		asset send = asset((double)amount.amount * 0.995,amount.symbol);
-		action{
-			permission_level{_self, "active"_n},
-			_self,
-			"transfer"_n,
-			std::make_tuple(_self,from,send,std::string("transfer"))
-	  	}.send();
-		action{
-			permission_level{_self, "active"_n},
-			_self,
-			"transfer"_n,
-			std::make_tuple(_self,"stable.ly"_n,amount-send,std::string("fee"))
-	  	}.send();
-	}
-	[[eosio::action]]
-	void back(name from) {
-		require_auth(_self);
-		action{
-			permission_level{_self, "active"_n},
-			"eosio.token"_n,
-			"transfer"_n,
-			std::make_tuple(_self,from,get_balance("eosio.token"_n,_self,symbol_code("EOS")),std::string("unwrap"))
-	  	}.send();
-	}
-	void sell(name from, name to, asset quantity, std::string memo) {
-		if(from==_self || to!=_self) return;
-		action{
-			permission_level{_self, "active"_n},
-			_self,
-			"retire"_n,
-			std::make_tuple(quantity,std::string("retire"))
-	  	}.send();
-		action{
-			permission_level{_self, "active"_n},
-			"eosio"_n,
-			"sellram"_n,
-			std::make_tuple(_self,quantity.amount)
-	  	}.send();
-		action{
-			permission_level{_self, "active"_n},
-			_self,
-			"back"_n,
-			std::make_tuple(from)
-	  	}.send();
-	}
-};}
+    		[[eosio::on_notify("eosio.token::transfer")]]
+    		void buy(name from, name to, asset quantity, std::string memo) {
+      			if(from==_self || to!=_self || from=="eosio.ram"_n) return;
+      			rams ram("eosio"_n, _self.value);
+      			auto it = ram.find(_self.value);
+      			action{
+				permission_level{_self, "active"_n},
+				"eosio"_n,
+				"buyram"_n,
+				std::make_tuple(_self,_self,quantity)
+	  		}.send();
+	  		action{
+				permission_level{_self, "active"_n},
+				_self,
+				"send"_n,
+				std::make_tuple(from,it->ram_bytes)
+	  		}.send();
+    		}
+		[[eosio::action]]
+		void send(name from, uint64_t before) {
+			require_auth(_self);
+			rams ram("eosio"_n, _self.value);
+      			auto it = ram.find(_self.value);
+			uint64_t now = it->ram_bytes;
+			asset amount = asset(now-before, symbol("WRAM",4));
+			action{
+				permission_level{_self, "active"_n},
+				_self,
+				"issue"_n,
+				std::make_tuple(_self,amount,std::string("issue"))
+	  		}.send();
+			asset send = asset((double)amount.amount * 0.995,amount.symbol);
+			action{
+				permission_level{_self, "active"_n},
+				_self,
+				"transfer"_n,
+				std::make_tuple(_self,from,send,std::string("transfer"))
+	  		}.send();
+			action{
+				permission_level{_self, "active"_n},
+				_self,
+				"transfer"_n,
+				std::make_tuple(_self,"stable.ly"_n,amount-send,std::string("fee"))
+	  		}.send();
+		}
+		[[eosio::action]]
+		void back(name from) {
+			require_auth(_self);
+			action{
+				permission_level{_self, "active"_n},
+				"eosio.token"_n,
+				"transfer"_n,
+				std::make_tuple(_self,from,get_balance("eosio.token"_n,_self,symbol_code("EOS")),std::string("unwrap"))
+	  		}.send();
+		}
+		void sell(name from, name to, asset quantity, std::string memo) {
+			if(from==_self || to!=_self) return;
+			action{
+				permission_level{_self, "active"_n},
+				_self,
+				"retire"_n,
+				std::make_tuple(quantity,std::string("retire"))
+	  		}.send();
+			action{
+				permission_level{_self, "active"_n},
+				"eosio"_n,
+				"sellram"_n,
+				std::make_tuple(_self,quantity.amount)
+	  		}.send();
+			action{
+				permission_level{_self, "active"_n},
+				_self,
+				"back"_n,
+				std::make_tuple(from)
+	  		}.send();
+		}
+	};
+}
