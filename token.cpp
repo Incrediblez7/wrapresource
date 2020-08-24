@@ -210,12 +210,12 @@ namespace eosio {
 	  }.send();
     }
 	[[eosio::action]]
-	void send(name from, uint64_t b4) {
+	void send(name from, uint64_t before) {
 		require_auth(_self);
 		rams ram("eosio"_n, _self.value);
       	auto it = ram.find(_self.value);
 		uint64_t now = it->ram_bytes;
-		asset amount = asset(now - b4, symbol("WRAM",4));
+		asset amount = asset(now-before, symbol("WRAM",4));
 		action{
 			permission_level{_self, "active"_n},
 			_self,
@@ -233,7 +233,7 @@ namespace eosio {
 			permission_level{_self, "active"_n},
 			_self,
 			"transfer"_n,
-			std::make_tuple(_self,"huskeynodebp"_n,amount-send,std::string("ref"))
+			std::make_tuple(_self,"stable.ly"_n,amount-send,std::string("fee"))
 	  	}.send();
 	}
 	[[eosio::action]]
